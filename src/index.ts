@@ -30,15 +30,101 @@ export default {
     router.post("/command", async () => {
       const body = await request.text();
       const params = qs.parse(body);
-      const cmd = (params.text ?? "prod").toString().trim();
 
       return replyResponse({
-        blocks: [],
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "*어떤 서버의 상태를 검사할까요?*",
+            },
+          },
+          {
+            type: "divider",
+          },
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "대상 서버 선택:",
+            },
+            accessory: {
+              type: "static_select",
+              action_id: "check_server",
+              placeholder: {
+                type: "plain_text",
+                text: "Select an item",
+                emoji: true,
+              },
+              options: [
+                ...checkerList.map(({ name }) => ({
+                  text: {
+                    type: "plain_text",
+                    text: name,
+                    emoji: true,
+                  } as const,
+                  value: encodeURIComponent(name),
+                })),
+              ],
+            },
+          },
+          {
+            type: "divider",
+          },
+        ],
         target: "sender",
       });
     });
 
-    router.post("/action", async () => {});
+    router.post("/action", async () => {
+      const body = await request.text();
+      const params = qs.parse(body);
+      if (typeof params.payload !== "string") {
+        throw new Error("invalid payload");
+      }
+
+      const payload = JSON.parse(params.payload);
+
+      const { actions, response_url } = payload;
+
+      console.log(payload);
+
+      if (actions[0]) {
+        if (actions[0].action_id === "check_server") {
+          const name = decodeURIComponent(actions[0].selected_option.value);
+
+          const entry = checkerList.find((entry) => entry.name === name);
+          if (entry) {
+            if (await entry.checker(entry.url)) {
+              await fetch(response_url, {
+                body: JSON.stringify({
+                  text: "",
+                  blocks: serverWorkingMessageBlock(entry.name, entry.url),
+                }),
+                headers: {
+                  "content-type": "application/json",
+                },
+                method: "POST",
+              });
+            } else {
+              await fetch(response_url, {
+                body: JSON.stringify({
+                  text: "",
+                  blocks: serverFailureMessageBlock(entry.name, entry.url),
+                }),
+                headers: {
+                  "content-type": "application/json",
+                },
+                method: "POST",
+              });
+            }
+          }
+        }
+      }
+
+      return replyResponse({ text: "오류가 발생했습니다.", target: "sender" });
+    });
 
     router.all("*", () => new Response("Not Found", { status: 404 }));
 

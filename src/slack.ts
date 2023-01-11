@@ -26,6 +26,7 @@ export function createSlackClient(botToken: string): SlackClient {
 
 interface Reply {
   blocks?: KnownBlock[];
+  text?: string;
   target: "sender" | "sentChannel";
   replaceOriginal?: boolean;
 }
@@ -33,13 +34,14 @@ interface Reply {
 export function replyResponse({
   blocks,
   target,
+  text = "",
   replaceOriginal = false,
 }: Reply) {
   const response_type = target === "sentChannel" ? "in_channel" : undefined;
   const replace_original = replaceOriginal ? "true" : "false";
 
   return new Response(
-    JSON.stringify({ blocks, response_type, replace_original }),
+    JSON.stringify({ blocks, text, response_type, replace_original }),
     {
       headers: { "Content-type": "application/json" },
     }
