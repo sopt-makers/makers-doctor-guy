@@ -1,0 +1,9 @@
+name = "makers-server-doctor"
+main = "src/index.ts"
+compatibility_date = "2023-01-11"
+
+[triggers]
+crons = [ "*/30 * * * *" ]
+
+[vars]
+SLACK_BOT_API_TOKEN = "bot_api_token"
