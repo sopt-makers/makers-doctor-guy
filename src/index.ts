@@ -57,31 +57,34 @@ export default {
       }
 
       const { actions, response_url } = payload;
-
-      handleAction(actions, "static_select", "check_server", async (action) => {
-        const name = decodeURIComponent(action.selected_option.value);
-
-        const entry = checkerList.find((entry) => entry.name === name);
-        if (entry) {
-          if (await entry.checker(entry.url)) {
-            await sendToResponseURL(response_url, {
-              text: "",
-              blocks: serverWorkingMessageBlock(entry.name, entry.url),
-              response_type: "in_channel",
-              replace_original: false,
-              delete_original: true,
-            });
-          } else {
-            await sendToResponseURL(response_url, {
-              text: "",
-              blocks: serverFailureMessageBlock(entry.name, entry.url),
-              response_type: "in_channel",
-              replace_original: false,
-              delete_original: true,
-            });
+      await handleAction(
+        actions,
+        "static_select",
+        "check_server",
+        async (action) => {
+          const name = decodeURIComponent(action.selected_option.value);
+          const entry = checkerList.find((entry) => entry.name === name);
+          if (entry) {
+            if (await entry.checker(entry.url)) {
+              await sendToResponseURL(response_url, {
+                text: "",
+                blocks: serverWorkingMessageBlock(entry.name, entry.url),
+                response_type: "in_channel",
+                replace_original: false,
+                delete_original: true,
+              });
+            } else {
+              await sendToResponseURL(response_url, {
+                text: "",
+                blocks: serverFailureMessageBlock(entry.name, entry.url),
+                response_type: "in_channel",
+                replace_original: false,
+                delete_original: true,
+              });
+            }
           }
         }
-      });
+      );
 
       return new Response();
     });

@@ -43,10 +43,11 @@ export function createMessageResponse(message: MessagePayload) {
 
 export async function sendToResponseURL(
   responseURL: string,
-  message: MessagePayload
+  payload: MessagePayload
 ) {
+  console.log("SEND ", payload);
   return await fetch(responseURL, {
-    body: JSON.stringify(message),
+    body: JSON.stringify(payload),
     headers: {
       "content-type": "application/json",
     },
@@ -68,11 +69,11 @@ export function parseBlockActionPayload(payloadStr: unknown) {
 
 type ActionTypeOf<T extends Action, K extends Action["type"]> = T & { type: K };
 
-export function handleAction<K extends Action["type"]>(
+export async function handleAction<K extends Action["type"]>(
   actions: Action[],
   type: K,
   actionId: string,
-  cb: (action: ActionTypeOf<Action, K>) => void
+  cb: (action: ActionTypeOf<Action, K>) => Promise<void> | void
 ) {
   const maybeAction = actions.find(
     (action): action is ActionTypeOf<Action, K> =>
@@ -80,6 +81,6 @@ export function handleAction<K extends Action["type"]>(
   );
 
   if (maybeAction) {
-    cb(maybeAction);
+    await cb(maybeAction);
   }
 }
