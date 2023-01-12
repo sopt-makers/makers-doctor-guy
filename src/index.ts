@@ -68,7 +68,11 @@ export default {
             if (await entry.checker(entry.url)) {
               await sendToResponseURL(response_url, {
                 text: "",
-                blocks: serverWorkingMessageBlock(entry.name, entry.url),
+                blocks: serverWorkingMessageBlock(
+                  entry.name,
+                  entry.url,
+                  `(호출자: <@${payload.user.id}>)`
+                ),
                 response_type: "in_channel",
                 replace_original: false,
                 delete_original: true,
@@ -76,7 +80,11 @@ export default {
             } else {
               await sendToResponseURL(response_url, {
                 text: "",
-                blocks: serverFailureMessageBlock(entry.name, entry.url),
+                blocks: serverFailureMessageBlock(
+                  entry.name,
+                  entry.url,
+                  `(호출자: <@${payload.user.id}>)`
+                ),
                 response_type: "in_channel",
                 replace_original: false,
                 delete_original: true,

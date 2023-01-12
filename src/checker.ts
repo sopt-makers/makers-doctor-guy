@@ -4,12 +4,14 @@ export const checkerList: CheckerEntry[] = [
     url: "https://playground.api.sopt.org",
     channel: "#makers-doctor",
     checker: checkPlaygroundAPIServer,
+    mentions: "pg-all",
   },
   {
     name: "플레이그라운드 개발용",
     url: "https://playground.dev.sopt.org",
     channel: "#makers-doctor",
     checker: checkPlaygroundAPIServer,
+    mentions: "pg-all",
   },
 ];
 
