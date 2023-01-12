@@ -88,8 +88,6 @@ export default {
 
       const { actions, response_url } = payload;
 
-      console.log(payload);
-
       if (actions[0]) {
         if (actions[0].action_id === "check_server") {
           const name = decodeURIComponent(actions[0].selected_option.value);
@@ -101,6 +99,9 @@ export default {
                 body: JSON.stringify({
                   text: "",
                   blocks: serverWorkingMessageBlock(entry.name, entry.url),
+                  response_type: "in_channel",
+                  replace_original: false,
+                  delete_original: true,
                 }),
                 headers: {
                   "content-type": "application/json",
@@ -112,6 +113,9 @@ export default {
                 body: JSON.stringify({
                   text: "",
                   blocks: serverFailureMessageBlock(entry.name, entry.url),
+                  response_type: "in_channel",
+                  replace_original: false,
+                  delete_original: true,
                 }),
                 headers: {
                   "content-type": "application/json",
