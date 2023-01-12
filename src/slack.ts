@@ -75,10 +75,11 @@ export function handleAction<K extends Action["type"]>(
   cb: (action: ActionTypeOf<Action, K>) => void
 ) {
   const maybeAction = actions.find(
-    (action) =>
-      action.type === "static_select" && action.action_id === "check_server"
+    (action): action is ActionTypeOf<Action, K> =>
+      action.type === type && action.action_id === actionId
   );
 
   if (maybeAction) {
+    cb(maybeAction);
   }
 }
