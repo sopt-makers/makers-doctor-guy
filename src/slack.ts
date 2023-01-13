@@ -45,7 +45,6 @@ export async function sendToResponseURL(
   responseURL: string,
   payload: MessagePayload
 ) {
-  console.log("SEND ", payload);
   return await fetch(responseURL, {
     body: JSON.stringify(payload),
     headers: {
