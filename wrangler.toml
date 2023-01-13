@@ -1,4 +1,4 @@
-name = "makers-server-doctor"
+name = "makers-doctor-guy"
 main = "src/index.ts"
 compatibility_date = "2023-01-11"
 
