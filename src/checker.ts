@@ -14,14 +14,14 @@ export const checkerList: CheckerEntry[] = [
     mentions: "pg-all",
   },
   {
-    name: "공식홈페이지 프론트엔드",
+    name: "공식홈페이지 프론트엔드 1",
     url: "https://sopt.org",
     channel: "#makers-doctor",
     checker: check200Response,
     mentions: "<@U0420HE8JLV>",
   },
   {
-    name: "공식홈페이지 프론트엔드",
+    name: "공식홈페이지 프론트엔드 2",
     url: "https://www.sopt.org",
     channel: "#makers-doctor",
     checker: check200Response,
