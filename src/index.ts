@@ -120,12 +120,11 @@ async function checkServerAll(slackClient: SlackClient, store: KVNamespace) {
     const isRecentFailed = await store.get(`server:recentFail:${url}`, "text");
     if (!isRecentFailed) {
       const blocks = serverFailureMessageBlock(name, url, mentions);
-      const { ok } = await slackClient.postSlackMessage(blocks, channel);
-      if (ok) {
-        await store.put(`server:recentFail:${url}`, new Date().toISOString(), {
-          expirationTtl: ERROR_MESSAGE_INTERVAL,
-        });
-      }
+      await slackClient.postSlackMessage(blocks, channel);
+
+      await store.put(`server:recentFail:${url}`, new Date().toISOString(), {
+        expirationTtl: ERROR_MESSAGE_INTERVAL,
+      });
     }
   };
 

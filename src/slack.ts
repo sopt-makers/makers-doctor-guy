@@ -2,12 +2,7 @@ import type { KnownBlock } from "@slack/types";
 import { Action, BlockActionPayload } from "./types/interaction";
 
 export interface SlackClient {
-  postSlackMessage(
-    blocks: KnownBlock[],
-    channel: string
-  ): Promise<{
-    ok: boolean;
-  }>;
+  postSlackMessage(blocks: KnownBlock[], channel: string): Promise<void>;
 }
 
 export function createSlackClient(botToken: string): SlackClient {
@@ -24,7 +19,13 @@ export function createSlackClient(botToken: string): SlackClient {
       }),
     });
 
-    return await res.json<{ ok: boolean }>();
+    const result = await res.json<{ ok: boolean }>();
+
+    if (res.status !== 200 || !result.ok) {
+      throw new Error(
+        "Sending Slack message failed. " + JSON.stringify(result)
+      );
+    }
   }
 
   return {

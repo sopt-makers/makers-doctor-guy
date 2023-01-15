@@ -9,6 +9,7 @@ kv_namespaces = [
 [triggers]
 crons = [ "*/1 * * * *" ]
 
-[vars]
-SLACK_BOT_API_TOKEN = "bot_api_token"
 
+# The necessary secrets are:
+# - SLACK_BOT_API_TOKEN
+# Run `echo <VALUE> | wrangler secret put <NAME>` for each of these
