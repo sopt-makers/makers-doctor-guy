@@ -1,6 +1,6 @@
 import { Router } from "itty-router";
 import qs from "qs";
-import { checkerList } from "./checker";
+import { CheckerEntry, checkerList } from "./checker";
 import {
   serverFailureMessageBlock,
   serverSelectMessageBlock,
@@ -15,20 +15,12 @@ import {
   handleAction,
 } from "./slack";
 
-/**
- * Welcome to Cloudflare Workers! This is your first scheduled worker.
- *
- * - Run `wrangler dev --local` in your terminal to start a development server
- * - Run `curl "http://localhost:8787/cdn-cgi/mf/scheduled"` to trigger the scheduled event
- * - Go back to the console to see what your worker has logged
- * - Update the Cron trigger in wrangler.toml (see https://developers.cloudflare.com/workers/wrangler/configuration/#triggers)
- * - Run `wrangler publish --name my-worker` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/runtime-apis/scheduled-event/
- */
+const ERROR_MESSAGE_INTERVAL = 30 * 60; // 30 minutes
 
 export interface Env {
   SLACK_BOT_API_TOKEN: string;
+
+  MAKERS_DOCTOR_GUY: KVNamespace;
 }
 
 export default {
@@ -108,20 +100,36 @@ export default {
   ): Promise<void> {
     const slackClient = createSlackClient(env.SLACK_BOT_API_TOKEN);
 
-    await checkServerAll(slackClient);
+    await checkServerAll(slackClient, env.MAKERS_DOCTOR_GUY);
   },
 };
 
-async function checkServerAll(slackClient: SlackClient) {
-  return await Promise.allSettled(
-    checkerList.map(async ({ name, url, channel, mentions, checker }) => {
-      const isAlive = await checker(url);
-      if (isAlive) {
-        return;
-      }
+async function checkServerAll(slackClient: SlackClient, store: KVNamespace) {
+  const checkOne = async ({
+    name,
+    url,
+    channel,
+    mentions,
+    checker,
+  }: CheckerEntry) => {
+    const isAlive = await checker(url);
+    if (isAlive) {
+      return;
+    }
 
+    const isRecentFailed = await store.get(`server:recentFail:${url}`, "text");
+    if (!isRecentFailed) {
       const blocks = serverFailureMessageBlock(name, url, mentions);
-      await slackClient.postSlackMessage(blocks, channel);
-    })
+      const { ok } = await slackClient.postSlackMessage(blocks, channel);
+      if (ok) {
+        await store.put(`server:recentFail:${url}`, new Date().toISOString(), {
+          expirationTtl: ERROR_MESSAGE_INTERVAL,
+        });
+      }
+    }
+  };
+
+  return await Promise.allSettled(
+    checkerList.map(async (checker) => await checkOne(checker))
   );
 }

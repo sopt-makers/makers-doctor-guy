@@ -2,8 +2,13 @@ name = "makers-doctor-guy"
 main = "src/index.ts"
 compatibility_date = "2023-01-11"
 
+kv_namespaces = [
+    { binding = "MAKERS_DOCTOR_GUY", id = "990070f9b1e0417983c02db1ecb3ada9", preview_id = "c7e8c3a45d6b45cba9aecebab609bc88" }
+]
+
 [triggers]
-crons = [ "*/15 * * * *" ]
+crons = [ "*/1 * * * *" ]
 
 [vars]
 SLACK_BOT_API_TOKEN = "bot_api_token"
+

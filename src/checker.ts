@@ -34,9 +34,15 @@ export const checkerList: CheckerEntry[] = [
     checker: check200Response,
     mentions: "<@U0420HE8JLV>",
   },
+  {
+    name: "테스트",
+    url: "https://playground.dev.sopt.org/test",
+    channel: "#makers-doctor-test",
+    checker: check200Response,
+  },
 ];
 
-interface CheckerEntry {
+export interface CheckerEntry {
   name: string;
   url: string;
   channel: string;

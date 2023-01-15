@@ -2,12 +2,17 @@ import type { KnownBlock } from "@slack/types";
 import { Action, BlockActionPayload } from "./types/interaction";
 
 export interface SlackClient {
-  postSlackMessage(blocks: KnownBlock[], channel: string): Promise<Response>;
+  postSlackMessage(
+    blocks: KnownBlock[],
+    channel: string
+  ): Promise<{
+    ok: boolean;
+  }>;
 }
 
 export function createSlackClient(botToken: string): SlackClient {
   async function postSlackMessage(blocks: KnownBlock[], channel: string) {
-    return await fetch("https://slack.com/api/chat.postMessage", {
+    const res = await fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -18,6 +23,8 @@ export function createSlackClient(botToken: string): SlackClient {
         blocks,
       }),
     });
+
+    return await res.json<{ ok: boolean }>();
   }
 
   return {

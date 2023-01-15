@@ -10,7 +10,7 @@
   },
   "private": true,
   "scripts": {
-    "start": "wrangler dev",
+    "start": "wrangler dev --test-scheduled",
     "deploy": "wrangler publish"
   },
   "dependencies": {
