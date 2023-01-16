@@ -2,11 +2,11 @@ import type { KnownBlock } from "@slack/types";
 import { Action, BlockActionPayload } from "./types/interaction";
 
 export interface SlackClient {
-  postSlackMessage(blocks: KnownBlock[], channel: string): Promise<void>;
+  postSlackMessage(message: MessagePayload, channel: string): Promise<void>;
 }
 
 export function createSlackClient(botToken: string): SlackClient {
-  async function postSlackMessage(blocks: KnownBlock[], channel: string) {
+  async function postSlackMessage(message: MessagePayload, channel: string) {
     const res = await fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
       headers: {
@@ -15,7 +15,7 @@ export function createSlackClient(botToken: string): SlackClient {
       },
       body: JSON.stringify({
         channel,
-        blocks,
+        ...message,
       }),
     });
 

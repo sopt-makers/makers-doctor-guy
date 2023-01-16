@@ -4,7 +4,7 @@ import { CheckerEntry, checkerList } from "./checker";
 import {
   serverFailureMessageBlock,
   serverSelectMessageBlock,
-  serverWorkingMessageBlock,
+  serverWorkingMessage,
 } from "./message";
 import {
   createSlackClient,
@@ -59,8 +59,7 @@ export default {
           if (entry) {
             if (await entry.checker(entry.url)) {
               await sendToResponseURL(response_url, {
-                text: "",
-                blocks: serverWorkingMessageBlock(
+                ...serverWorkingMessage(
                   entry.name,
                   entry.url,
                   `(호출자: <@${payload.user.id}>)`
@@ -71,8 +70,7 @@ export default {
               });
             } else {
               await sendToResponseURL(response_url, {
-                text: "",
-                blocks: serverFailureMessageBlock(
+                ...serverFailureMessageBlock(
                   entry.name,
                   entry.url,
                   `(호출자: <@${payload.user.id}>)`
@@ -116,11 +114,10 @@ async function checkServerAll(slackClient: SlackClient, store: KVNamespace) {
     if (isAlive) {
       return;
     }
-
     const isRecentFailed = await store.get(`server:recentFail:${url}`, "text");
     if (!isRecentFailed) {
-      const blocks = serverFailureMessageBlock(name, url, mentions);
-      await slackClient.postSlackMessage(blocks, channel);
+      const message = serverFailureMessageBlock(name, url, mentions);
+      await slackClient.postSlackMessage(message, channel);
 
       await store.put(`server:recentFail:${url}`, new Date().toISOString(), {
         expirationTtl: ERROR_MESSAGE_INTERVAL,
