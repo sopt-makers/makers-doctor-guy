@@ -1,19 +1,8 @@
 import { Router } from "itty-router";
 import qs from "qs";
-import { CheckerEntry, checkerList } from "./checker";
-import {
-  serverFailureMessageBlock,
-  serverSelectMessageBlock,
-  serverWorkingMessage,
-} from "./message";
-import {
-  createSlackClient,
-  createMessageResponse,
-  SlackClient,
-  sendToResponseURL,
-  parseBlockActionPayload,
-  handleAction,
-} from "./slack";
+import { handleCommand, handleInteractiveMessage } from "./bot";
+import { checkServerAll } from "./cron";
+import { createSlackClient } from "./slack";
 
 const ERROR_MESSAGE_INTERVAL = 30 * 60; // 30 minutes
 
@@ -28,63 +17,18 @@ export default {
     const router = Router();
 
     router.post("/command", async () => {
-      const body = await request.text();
-      const params = qs.parse(body);
-
-      return createMessageResponse({
-        text: "",
-        blocks: serverSelectMessageBlock(),
-      });
+      return handleCommand();
     });
 
     router.post("/action", async () => {
       const body = await request.text();
       const params = qs.parse(body);
       if (typeof params.payload !== "string") {
-        throw new Error("invalid payload");
-      }
-      const payload = parseBlockActionPayload(params.payload);
-      if (!payload) {
-        throw new Error("invalid payload");
+        console.log("Invalid payload detedted.", params);
+        return new Response(null, { status: 400 });
       }
 
-      const { actions, response_url } = payload;
-      await handleAction(
-        actions,
-        "static_select",
-        "check_server",
-        async (action) => {
-          const name = decodeURIComponent(action.selected_option.value);
-          const entry = checkerList.find((entry) => entry.name === name);
-          if (entry) {
-            if (await entry.checker(entry.url)) {
-              await sendToResponseURL(response_url, {
-                ...serverWorkingMessage(
-                  entry.name,
-                  entry.url,
-                  `(호출자: <@${payload.user.id}>)`
-                ),
-                response_type: "in_channel",
-                replace_original: false,
-                delete_original: true,
-              });
-            } else {
-              await sendToResponseURL(response_url, {
-                ...serverFailureMessageBlock(
-                  entry.name,
-                  entry.url,
-                  `(호출자: <@${payload.user.id}>)`
-                ),
-                response_type: "in_channel",
-                replace_original: false,
-                delete_original: true,
-              });
-            }
-          }
-        }
-      );
-
-      return new Response();
+      return await handleInteractiveMessage(params.payload);
     });
 
     router.all("*", () => new Response("Not Found", { status: 404 }));
@@ -98,47 +42,10 @@ export default {
   ): Promise<void> {
     const slackClient = createSlackClient(env.SLACK_BOT_API_TOKEN);
 
-    await checkServerAll(slackClient, env.MAKERS_DOCTOR_GUY);
+    await checkServerAll(
+      slackClient,
+      env.MAKERS_DOCTOR_GUY,
+      ERROR_MESSAGE_INTERVAL
+    );
   },
 };
-
-async function checkServerAll(slackClient: SlackClient, store: KVNamespace) {
-  const checkOne = async ({
-    name,
-    url,
-    channel,
-    mentions,
-    checker,
-  }: CheckerEntry) => {
-    const isAlive = await checker(url);
-    const isRecentFailed = await store.get(`server:recentFail:${url}`, "text");
-
-    if (isAlive && !isRecentFailed) {
-      return;
-    }
-    if (!isAlive && isRecentFailed) {
-      return;
-    }
-
-    if (isAlive && isRecentFailed) {
-      await store.delete(`server:recentFail:${url}`);
-
-      const message = serverWorkingMessage(name, url);
-      await slackClient.postSlackMessage(message, channel);
-
-      return;
-    }
-    if (!isAlive && !isRecentFailed) {
-      const message = serverFailureMessageBlock(name, url, mentions);
-      await slackClient.postSlackMessage(message, channel);
-
-      await store.put(`server:recentFail:${url}`, new Date().toISOString(), {
-        expirationTtl: ERROR_MESSAGE_INTERVAL,
-      });
-    }
-  };
-
-  return await Promise.allSettled(
-    checkerList.map(async (checker) => await checkOne(checker))
-  );
-}
