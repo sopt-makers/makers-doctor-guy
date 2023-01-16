@@ -111,17 +111,24 @@ async function checkServerAll(slackClient: SlackClient, store: KVNamespace) {
     checker,
   }: CheckerEntry) => {
     const isAlive = await checker(url);
+    const isRecentFailed = await store.get(`server:recentFail:${url}`, "text");
 
-    if (isAlive) {
+    if (isAlive && !isRecentFailed) {
+      return;
+    }
+    if (!isAlive && isRecentFailed) {
+      return;
+    }
+
+    if (isAlive && isRecentFailed) {
       await store.delete(`server:recentFail:${url}`);
 
-      const message = serverFailureMessageBlock(name, url);
+      const message = serverWorkingMessage(name, url);
       await slackClient.postSlackMessage(message, channel);
 
       return;
     }
-    const isRecentFailed = await store.get(`server:recentFail:${url}`, "text");
-    if (!isRecentFailed) {
+    if (!isAlive && !isRecentFailed) {
       const message = serverFailureMessageBlock(name, url, mentions);
       await slackClient.postSlackMessage(message, channel);
 
