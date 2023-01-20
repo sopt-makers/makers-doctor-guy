@@ -1,16 +1,7 @@
 import type { KnownBlock } from "@slack/types";
 import { checkerList } from "./checker";
-import { formatInTimeZone } from "date-fns-tz";
-import ko from "date-fns/locale/ko";
 
 export function serverWorkingMessage(name: string, url: string, mentions = "") {
-  const koreaTime = formatInTimeZone(
-    new Date(),
-    "Asia/Seoul",
-    "yyyy-MM-dd HH:mm:ss",
-    { locale: ko }
-  );
-
   const blocks: KnownBlock[] = [
     {
       type: "section",
@@ -32,7 +23,7 @@ export function serverWorkingMessage(name: string, url: string, mentions = "") {
         },
         {
           type: "mrkdwn",
-          text: `*시간(KST):*\n${koreaTime}`,
+          text: `*시간(KST):*\n${formatTimeForSlack(new Date())}`,
         },
         {
           type: "mrkdwn",
@@ -56,13 +47,6 @@ export function serverFailureMessageBlock(
   url: string,
   mentions = ""
 ) {
-  const koreaTime = formatInTimeZone(
-    new Date(),
-    "Asia/Seoul",
-    "yyyy-MM-dd HH:mm:ss",
-    { locale: ko }
-  );
-
   const blocks: KnownBlock[] = [
     {
       type: "section",
@@ -84,7 +68,7 @@ export function serverFailureMessageBlock(
         },
         {
           type: "mrkdwn",
-          text: `*시간(KST):*\n${koreaTime}`,
+          text: `*시간(KST):*\n${formatTimeForSlack(new Date())}`,
         },
         {
           type: "mrkdwn",
@@ -145,4 +129,10 @@ export function serverSelectMessageBlock(): KnownBlock[] {
       type: "divider",
     },
   ];
+}
+
+function formatTimeForSlack(time: Date) {
+  return `<!date^${Math.floor(
+    time.getTime() / 1000
+  )}^{date_num} {time}|${new Date().toISOString()}>`;
 }
