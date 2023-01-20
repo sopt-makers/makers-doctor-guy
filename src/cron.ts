@@ -14,7 +14,7 @@ export async function checkServerAll(
     mentions,
     checker,
   }: CheckerEntry) => {
-    const isAlive = await checker(url);
+    const isAlive = await retryOnFail(() => checker(url), 2);
     const isRecentFailed = await store.get(`server:recentFail:${url}`, "text");
 
     if (isAlive && !isRecentFailed) {
@@ -45,4 +45,19 @@ export async function checkServerAll(
   return await Promise.allSettled(
     checkerList.map(async (checker) => await checkOne(checker))
   );
+}
+
+async function retryOnFail(
+  fn: () => Promise<boolean>,
+  retry: number
+): Promise<boolean> {
+  if (retry <= 0) {
+    return false;
+  }
+
+  const result = await fn();
+  if (result) {
+    return true;
+  }
+  return retryOnFail(fn, retry - 1);
 }

@@ -40,6 +40,9 @@ export function serverWorkingMessage(name: string, url: string, mentions = "") {
         },
       ],
     },
+    {
+      type: "divider",
+    },
   ];
 
   return {
@@ -56,7 +59,7 @@ export function serverFailureMessageBlock(
   const koreaTime = formatInTimeZone(
     new Date(),
     "Asia/Seoul",
-    "yyyy-MM-dd HH:mm:ss zzz",
+    "yyyy-MM-dd HH:mm:ss",
     { locale: ko }
   );
 
@@ -88,6 +91,9 @@ export function serverFailureMessageBlock(
           text: `*Timestamp:*\n${new Date().toISOString()}`,
         },
       ],
+    },
+    {
+      type: "divider",
     },
   ];
 
