@@ -23,7 +23,7 @@ export function serverWorkingMessage(name: string, url: string, mentions = "") {
         },
         {
           type: "mrkdwn",
-          text: `*시간(KST):*\n${formatTimeForSlack(new Date())}`,
+          text: `*시간(Local Time):*\n${formatTimeForSlack(new Date())}`,
         },
         {
           type: "mrkdwn",
@@ -68,7 +68,7 @@ export function serverFailureMessageBlock(
         },
         {
           type: "mrkdwn",
-          text: `*시간(KST):*\n${formatTimeForSlack(new Date())}`,
+          text: `*시간(Local Time):*\n${formatTimeForSlack(new Date())}`,
         },
         {
           type: "mrkdwn",
@@ -134,5 +134,5 @@ export function serverSelectMessageBlock(): KnownBlock[] {
 function formatTimeForSlack(time: Date) {
   return `<!date^${Math.floor(
     time.getTime() / 1000
-  )}^{date_num} {time}|${new Date().toISOString()}>`;
+  )}^{date_num} {time_secs}|${new Date().toISOString()}>`;
 }
