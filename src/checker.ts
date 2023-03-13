@@ -18,21 +18,21 @@ export const checkerList: CheckerEntry[] = [
     url: "https://sopt.org",
     channel: "#makers-doctor",
     checker: check200Response,
-    mentions: "<@U0420HE8JLV>",
+    mentions: "<@U04Q369QXLP>, <@U04QHN2DHBL>",
   },
   {
     name: "공식홈페이지 프론트엔드 2",
     url: "https://www.sopt.org",
     channel: "#makers-doctor",
     checker: check200Response,
-    mentions: "<@U0420HE8JLV>",
+    mentions: "<@U04Q369QXLP>, <@U04QHN2DHBL>",
   },
   {
     name: "공식홈페이지 API",
     url: "https://api.sopt.org",
     channel: "#makers-doctor",
     checker: check200Response,
-    mentions: "<@U0420HE8JLV>",
+    mentions: "<@U04Q369QXLP>, <@U04QHN2DHBL>",
   },
 ];
 
