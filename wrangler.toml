@@ -3,7 +3,7 @@ main = "src/index.ts"
 compatibility_date = "2023-01-11"
 
 kv_namespaces = [
-    { binding = "MAKERS_DOCTOR_GUY", id = "990070f9b1e0417983c02db1ecb3ada9", preview_id = "c7e8c3a45d6b45cba9aecebab609bc88" }
+    { binding = "MAKERS_DOCTOR_GUY", id = "4648a3a5ca8740f696ddcd5ccd7b86d8", preview_id = "f6ad865027184bf8bfcdafd81dfd3bfb" }
 ]
 
 [triggers]

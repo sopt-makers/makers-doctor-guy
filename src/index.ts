@@ -1,49 +1,96 @@
-import { Router } from "itty-router";
-import qs from "qs";
-import { handleCommand, handleInteractiveMessage } from "./bot";
 import { checkServerAll } from "./cron";
-import { createSlackClient } from "./slack";
+import { SlackApp, StaticSelectAction } from "slack-cloudflare-workers";
+import {
+  serverFailureMessageBlock,
+  serverSelectMessageBlock,
+  serverWorkingMessage,
+} from "./message";
+import { checkerList } from "./checker";
 
 const ERROR_MESSAGE_INTERVAL = 30 * 60; // 30 minutes
 
 export interface Env {
   SLACK_BOT_API_TOKEN: string;
+  SLACK_SIGNING_SECRET: string;
 
   MAKERS_DOCTOR_GUY: KVNamespace;
 }
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    const router = Router();
-
-    router.post("/command", async () => {
-      return handleCommand();
+    const slackApp = new SlackApp({
+      env: {
+        SLACK_BOT_TOKEN: env.SLACK_BOT_API_TOKEN,
+        SLACK_SIGNING_SECRET: env.SLACK_SIGNING_SECRET,
+      },
     });
 
-    router.post("/action", async () => {
-      const body = await request.text();
-      const params = qs.parse(body);
-      if (typeof params.payload !== "string") {
-        console.log("Invalid payload detedted.", params);
-        return new Response(null, { status: 400 });
-      }
+    slackApp
+      .command(/.+/, async () => {
+        return {
+          text: "",
+          blocks: serverSelectMessageBlock(),
+        };
+      })
+      .action(
+        "check_server",
+        async () => {},
+        async ({ payload, context }) => {
+          const action = payload.actions.find(
+            (action): action is StaticSelectAction =>
+              action.type === "static_select"
+          );
 
-      return await handleInteractiveMessage(params.payload);
-    });
+          if (!action || !context.respond) {
+            return;
+          }
 
-    router.all("*", () => new Response("Not Found", { status: 404 }));
+          const name = decodeURIComponent(action.selected_option.value);
+          const entry = checkerList.find((entry) => entry.name === name);
+          if (entry) {
+            if (await entry.checker(entry.url)) {
+              await context.respond({
+                ...serverWorkingMessage(
+                  entry.name,
+                  entry.url,
+                  `(호출자: <@${payload.user.id}>)`
+                ),
+                response_type: "in_channel",
+                replace_original: false,
+                delete_original: true,
+              });
+            } else {
+              await context.respond({
+                ...serverFailureMessageBlock(
+                  entry.name,
+                  entry.url,
+                  `(호출자: <@${payload.user.id}>)`
+                ),
+                response_type: "in_channel",
+                replace_original: false,
+                delete_original: true,
+              });
+            }
+          }
+        }
+      );
 
-    return router.handle(request);
+    return await slackApp.run(request, ctx);
   },
   async scheduled(
     controller: ScheduledController,
     env: Env,
     ctx: ExecutionContext
   ): Promise<void> {
-    const slackClient = createSlackClient(env.SLACK_BOT_API_TOKEN);
+    const slackApp = new SlackApp({
+      env: {
+        SLACK_BOT_TOKEN: env.SLACK_BOT_API_TOKEN,
+        SLACK_SIGNING_SECRET: env.SLACK_SIGNING_SECRET,
+      },
+    });
 
     await checkServerAll(
-      slackClient,
+      slackApp.client,
       env.MAKERS_DOCTOR_GUY,
       ERROR_MESSAGE_INTERVAL
     );

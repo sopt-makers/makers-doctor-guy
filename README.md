@@ -22,6 +22,34 @@
 - [Cloudflare Workers](https://workers.cloudflare.com/)
 - [Slack Web API](https://api.slack.com/docs)
 
-## TODO
+## 배포 방법
 
-- 메시지 검증 추가
+1. 디펜던시 설치
+
+```bash
+yarn install
+```
+
+2. Cloudflare KV 세팅
+
+```bash
+yarn wrangler kv:namespace create main
+yarn wrangler kv:namespace create main --preview
+```
+
+나온 출력의 id를 `wrangler.toml` 파일의 kv_namespaces 부분의 id로 바꾸기
+
+3. Secret 세팅
+
+```bash
+yarn wrangler secret put SLACK_BOT_API_TOKEN
+yarn wrangler secret put SLACK_SIGNING_SECRET
+```
+
+각각 명령어 실행 후, Secret 값 입력하기
+
+4. 배포
+
+```bash
+yarn deploy
+```

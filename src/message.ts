@@ -1,8 +1,8 @@
-import type { KnownBlock } from "@slack/types";
 import { checkerList } from "./checker";
+import { AnySendableMessageBlock } from "slack-cloudflare-workers";
 
 export function serverWorkingMessage(name: string, url: string, mentions = "") {
-  const blocks: KnownBlock[] = [
+  const blocks = [
     {
       type: "section",
       text: {
@@ -34,7 +34,7 @@ export function serverWorkingMessage(name: string, url: string, mentions = "") {
     {
       type: "divider",
     },
-  ];
+  ] satisfies AnySendableMessageBlock[];
 
   return {
     text: `${name} 서버가 잘 동작중이에요! ${mentions}`,
@@ -47,7 +47,7 @@ export function serverFailureMessageBlock(
   url: string,
   mentions = ""
 ) {
-  const blocks: KnownBlock[] = [
+  const blocks = [
     {
       type: "section",
       text: {
@@ -79,7 +79,7 @@ export function serverFailureMessageBlock(
     {
       type: "divider",
     },
-  ];
+  ] satisfies AnySendableMessageBlock[];
 
   return {
     text: `${name} 서버에 문제가 발생했어요!\n${mentions}`,
@@ -87,7 +87,7 @@ export function serverFailureMessageBlock(
   };
 }
 
-export function serverSelectMessageBlock(): KnownBlock[] {
+export function serverSelectMessageBlock() {
   return [
     {
       type: "section",
@@ -128,7 +128,7 @@ export function serverSelectMessageBlock(): KnownBlock[] {
     {
       type: "divider",
     },
-  ];
+  ] satisfies AnySendableMessageBlock[];
 }
 
 function formatTimeForSlack(time: Date) {
